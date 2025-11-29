@@ -1,20 +1,50 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# EduZMC – Portal Edukasi Pasien Zihan Medical Center
 
-# Run and deploy your AI Studio app
+EduZMC adalah aplikasi React + TypeScript berbasis Vite yang menghadirkan kumpulan artikel edukasi pasien Zihan Medical Center (ZMC). Aplikasi ini menampilkan materi kesehatan interaktif, kalkulator sederhana, dan tautan cepat untuk menghubungi fasilitas.
 
-This contains everything you need to run your app locally.
+## Fitur Utama
+- **Navigasi Home & Artikel** – Router sederhana di `App.tsx` menampilkan halaman utama atau detail artikel berdasarkan ID dan menyediakan breadcrumb serta tombol kembali. 
+- **Katalog Artikel** – Berbagai artikel didefinisikan di `services/articleRegistry.tsx`, mencakup topik batuk, radang, GERD, kolesterol, P3K, dan lain-lain dengan komponen React khusus.
+- **Filter Kategori** – Halaman beranda (`pages/Home.tsx`) menampilkan filter kategori (Semua, Anak, Lansia, Penyakit Umum, Gaya Hidup, P3K & Darurat) dan kartu artikel yang dapat diklik.
+- **CTA Fasilitas** – Tombol cepat untuk WhatsApp, panggilan gawat darurat, dan Instagram, ditarik dari konfigurasi `ZMC_INFO` pada `constants.ts`.
+- **UI Responsif** – Layout (`components/Layout.tsx`) mencakup navigasi desktop/mobile, footer kontak, dan floating tombol WhatsApp dengan Tailwind CSS dan Font Awesome via CDN (`index.html`).
 
-View your app in AI Studio: https://ai.studio/apps/drive/1Bw-qBX_W1H2z_VU2O50xZvk8tkqPpk3Y
+## Struktur Proyek
+```
+├── App.tsx                 # Router sederhana dan wadah layout
+├── components
+│   ├── Layout.tsx          # Navigasi, footer, dan tombol WhatsApp
+│   ├── ArticleCard.tsx     # Kartu artikel pada beranda
+│   └── articles/           # Komponen konten artikel (Batuk, GERD, Kolesterol, dsb.)
+├── pages/Home.tsx          # Halaman beranda dengan filter kategori
+├── services/articleRegistry.tsx # Registrasi metadata artikel
+├── constants.ts            # Info kontak & branding ZMC
+├── index.tsx               # Entry ReactDOM dengan StrictMode
+├── index.html              # Template Vite, CDN Tailwind & Font Awesome
+├── types.ts                # Tipe `Article`, `Category`, dan utilitas lain
+└── package.json            # Skrip npm dan dependensi
+```
 
-## Run Locally
+## Persiapan & Menjalankan
+1. **Install dependensi**
+   ```bash
+   npm install
+   ```
+2. **Jalankan mode pengembangan**
+   ```bash
+   npm run dev
+   ```
+   Vite akan menampilkan URL lokal (default `http://localhost:5173`).
+3. **Build untuk produksi**
+   ```bash
+   npm run build
+   ```
+4. **Pratinjau build produksi secara lokal**
+   ```bash
+   npm run preview
+   ```
 
-**Prerequisites:**  Node.js
-
-
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+## Catatan Pengembangan
+- Tailwind dan Font Awesome dimuat langsung dari CDN pada `index.html`; tidak memerlukan konfigurasi build tambahan.
+- Informasi kontak, tautan WhatsApp, dan branding dapat disesuaikan lewat `constants.ts`.
+- Artikel baru dapat ditambahkan dengan membuat komponen di `components/articles/` dan meregistrasikannya pada `services/articleRegistry.tsx` beserta metadata `Article` dan `Category`.
