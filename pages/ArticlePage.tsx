@@ -1,12 +1,9 @@
 import React, { useEffect } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { ARTICLES } from '../services/articleRegistry';
+import NotFound from '../components/NotFound';
 
-interface ArticlePageProps {
-  onGoHome: () => void;
-}
-
-const ArticlePage: React.FC<ArticlePageProps> = ({ onGoHome }) => {
+const ArticlePage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
@@ -17,18 +14,7 @@ const ArticlePage: React.FC<ArticlePageProps> = ({ onGoHome }) => {
   }, [id]);
 
   if (!article) {
-    return (
-      <div className="p-10 text-center">
-        <h2 className="text-2xl font-bold">Artikel tidak ditemukan</h2>
-        <p className="text-slate-500 mt-2">Slug artikel tidak valid atau belum terdaftar.</p>
-        <button
-          onClick={onGoHome}
-          className="mt-4 text-zmc-red font-bold hover:underline"
-        >
-          &larr; Kembali ke Beranda
-        </button>
-      </div>
-    );
+    return <NotFound message="Slug artikel tidak valid atau belum terdaftar." />;
   }
 
   return (
@@ -54,7 +40,7 @@ const ArticlePage: React.FC<ArticlePageProps> = ({ onGoHome }) => {
           &larr; Kembali
         </button>
         <button
-          onClick={onGoHome}
+          onClick={() => navigate('/')}
           className="text-zmc-red font-bold hover:underline"
         >
           Menu Utama
