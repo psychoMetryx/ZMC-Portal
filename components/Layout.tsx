@@ -1,23 +1,31 @@
 
 import React, { useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { ZMC_INFO } from '../constants';
 
 interface LayoutProps {
   children: React.ReactNode;
-  onGoHome: () => void;
-  isHome: boolean;
 }
 
-const Layout: React.FC<LayoutProps> = ({ children, onGoHome, isHome }) => {
+const Layout: React.FC<LayoutProps> = ({ children }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const isHome = location.pathname === '/';
+
+  const goHome = () => {
+    navigate('/');
+    setMobileMenuOpen(false);
+  };
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-50 text-slate-800">
       {/* Navigation */}
       <nav className="bg-white shadow-sm sticky top-0 z-50 border-b border-red-100">
         <div className="container mx-auto px-4 py-3 flex justify-between items-center">
-          <div 
-            onClick={onGoHome} 
+          <div
+            onClick={goHome}
             className="flex items-center gap-3 cursor-pointer group"
           >
             <img src={ZMC_INFO.logoUrl} alt="Logo ZMC" className="h-10 w-10 md:h-12 md:w-12 rounded-full object-cover shadow-sm group-hover:scale-105 transition-transform" />
@@ -34,7 +42,7 @@ const Layout: React.FC<LayoutProps> = ({ children, onGoHome, isHome }) => {
           {/* Desktop Menu */}
           <div className="hidden md:flex items-center space-x-6 font-medium text-slate-600 text-sm">
             {!isHome && (
-              <button onClick={onGoHome} className="hover:text-zmc-red transition flex items-center gap-2">
+              <button onClick={goHome} className="hover:text-zmc-red transition flex items-center gap-2">
                 <i className="fa-solid fa-arrow-left"></i> Kembali ke Menu
               </button>
             )}
@@ -64,7 +72,7 @@ const Layout: React.FC<LayoutProps> = ({ children, onGoHome, isHome }) => {
           <div className="md:hidden bg-white border-t border-slate-100 absolute w-full shadow-xl fade-in-down">
             <div className="flex flex-col p-4 space-y-4 font-medium text-slate-700">
               {!isHome && (
-                <button onClick={() => { onGoHome(); setMobileMenuOpen(false); }} className="text-left flex items-center gap-2 text-zmc-red font-bold">
+                <button onClick={goHome} className="text-left flex items-center gap-2 text-zmc-red font-bold">
                   <i className="fa-solid fa-home"></i> Beranda
                 </button>
               )}
