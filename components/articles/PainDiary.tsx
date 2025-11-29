@@ -10,6 +10,36 @@ interface PainEntry {
 
 const STORAGE_KEY = 'zmc-nyeri-lansia-journal';
 const LEGACY_STORAGE_KEY = 'zmc_pain_diary';
+const ACTION_STORAGE_KEY = 'zmc-nyeri-lansia-actions';
+const TOPIC_LINKS = [
+  { id: 'cara-pakai', label: 'Cara pakai jurnal' },
+  { id: 'tanda-bahaya', label: 'Tanda bahaya' },
+  { id: 'kurangi-nyeri', label: 'Kurangi nyeri' },
+  { id: 'catatan-obat', label: 'Catatan obat' },
+];
+
+const DAILY_ACTIONS = [
+  {
+    id: 'gerak',
+    title: 'Gerak 5–10 menit',
+    detail: 'Jalan santai atau peregangan ringan supaya sendi tidak kaku.',
+  },
+  {
+    id: 'kompres',
+    title: 'Kompres tepat',
+    detail: 'Dingin untuk bengkak baru, hangat untuk otot kaku/nyeri lama.',
+  },
+  {
+    id: 'alas-kaki',
+    title: 'Alas kaki aman',
+    detail: 'Gunakan sandal/sepatu anti-slip dan stabil, terutama di kamar mandi.',
+  },
+  {
+    id: 'obat-teratur',
+    title: 'Minum obat teratur',
+    detail: 'Sesuai anjuran dokter, catat jam minum obat di jurnal.',
+  },
+];
 
 const PainScoreBadge: React.FC<{ score: number }> = ({ score }) => {
   const color = score >= 7 ? 'bg-red-500' : score >= 4 ? 'bg-orange-500' : 'bg-green-500';
@@ -27,6 +57,16 @@ const PainDiary: React.FC = () => {
   const [entries, setEntries] = useState<PainEntry[]>([]);
   const [score, setScore] = useState<number>(3);
   const [note, setNote] = useState<string>('');
+  const [actionsDone, setActionsDone] = useState<Record<string, boolean>>({});
+
+  const defaultActionState = useMemo(
+    () =>
+      DAILY_ACTIONS.reduce<Record<string, boolean>>((acc, action) => {
+        acc[action.id] = false;
+        return acc;
+      }, {}),
+    []
+  );
 
   // Load saved entries on mount
   useEffect(() => {
@@ -59,6 +99,22 @@ const PainDiary: React.FC = () => {
     }
   }, []);
 
+  // Load action checklist on mount
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      const saved = localStorage.getItem(ACTION_STORAGE_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved) as Record<string, boolean>;
+        setActionsDone({ ...defaultActionState, ...parsed });
+        return;
+      }
+    } catch (error) {
+      console.error('Failed to parse action checklist', error);
+    }
+    setActionsDone(defaultActionState);
+  }, [defaultActionState]);
+
   const formattedEntries = useMemo(
     () =>
       entries.map(entry => ({
@@ -76,6 +132,26 @@ const PainDiary: React.FC = () => {
     setEntries(next);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
     localStorage.removeItem(LEGACY_STORAGE_KEY);
+  };
+
+  const toggleAction = (id: string) => {
+    const updated = { ...actionsDone, [id]: !actionsDone[id] };
+    setActionsDone(updated);
+    localStorage.setItem(ACTION_STORAGE_KEY, JSON.stringify(updated));
+  };
+
+  const resetActions = () => {
+    if (confirm('Reset checklist edukasi hari ini?')) {
+      setActionsDone(defaultActionState);
+      localStorage.setItem(ACTION_STORAGE_KEY, JSON.stringify(defaultActionState));
+    }
+  };
+
+  const scrollToSection = (sectionId: string) => {
+    const el = document.getElementById(sectionId);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
   };
 
   const handleSave = () => {
@@ -120,6 +196,79 @@ const PainDiary: React.FC = () => {
         <p className="text-white/90 text-sm md:text-base max-w-2xl">
           Catat kondisi nyeri harian Bapak/Ibu untuk dilaporkan saat kontrol ke dokter ZMC.
         </p>
+      </div>
+
+      {/* Education spotlight */}
+      <div className="bg-white rounded-3xl shadow-lg border border-slate-200 p-5 md:p-7 space-y-4">
+        <div className="flex flex-col md:flex-row gap-5 md:items-center">
+          <div className="flex-1 space-y-3">
+            <p className="text-xs uppercase tracking-[0.15em] font-bold text-red-600">Edukasi Cepat</p>
+            <h2 className="text-2xl font-extrabold text-slate-900 leading-tight">Mulai dari edukasi, lalu isi jurnal</h2>
+            <p className="text-sm text-slate-700 leading-relaxed">
+              Baca poin penting sebelum menulis catatan agar keluarga tahu apa yang harus dilakukan hari ini.
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {TOPIC_LINKS.map(link => (
+                <button
+                  key={link.id}
+                  onClick={() => scrollToSection(link.id)}
+                  className="px-3 py-2 text-sm rounded-full border border-slate-200 bg-slate-50 hover:border-red-500 hover:text-red-600 transition"
+                >
+                  {link.label}
+                </button>
+              ))}
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-2">
+                <p className="text-sm font-semibold text-slate-900">Segera hubungi klinik bila…</p>
+                <ul className="list-disc pl-4 text-sm text-slate-700 space-y-1">
+                  <li>Nyeri tiba-tiba berat atau kaki lemas/kebas.</li>
+                  <li>Demam tinggi, bengkak merah panas, atau sulit BAK/BAB.</li>
+                </ul>
+              </div>
+              <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-2">
+                <p className="text-sm font-semibold text-slate-900">Tips cepat hari ini</p>
+                <ul className="list-disc pl-4 text-sm text-slate-700 space-y-1">
+                  <li>Batasi duduk lama, berdiri &amp; regangkan tiap 30–40 menit.</li>
+                  <li>Tanyakan keluarga untuk menemani saat bergerak atau ke kamar mandi.</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          <div className="flex-1 bg-slate-900 text-white rounded-3xl p-5 space-y-4 shadow-inner">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs uppercase tracking-[0.12em] text-white/70 font-bold">Checklist edukasi hari ini</p>
+                <p className="text-lg font-extrabold leading-tight">Sudah dilakukan?</p>
+              </div>
+              <button
+                onClick={resetActions}
+                className="text-xs px-3 py-2 rounded-full bg-white/10 border border-white/20 hover:bg-white/20 transition"
+              >
+                Reset
+              </button>
+            </div>
+            <div className="space-y-2">
+              {DAILY_ACTIONS.map(action => (
+                <label
+                  key={action.id}
+                  className="flex items-start gap-3 p-3 bg-white/5 rounded-2xl cursor-pointer hover:bg-white/10"
+                >
+                  <input
+                    type="checkbox"
+                    className="mt-1 h-5 w-5 accent-red-500"
+                    checked={Boolean(actionsDone[action.id])}
+                    onChange={() => toggleAction(action.id)}
+                  />
+                  <div>
+                    <p className="font-semibold leading-tight">{action.title}</p>
+                    <p className="text-sm text-white/80 leading-relaxed">{action.detail}</p>
+                  </div>
+                </label>
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Pain journal card */}
@@ -230,7 +379,7 @@ const PainDiary: React.FC = () => {
           <p>Tidak perlu menulis panjang–panjang. Yang penting rutin dan konsisten.</p>
         </section>
 
-        <section className="space-y-3">
+        <section className="space-y-3" id="cara-pakai">
           <h2 className="text-2xl font-extrabold text-slate-900">Cara Menggunakan Halaman Ini</h2>
           <ol className="list-decimal pl-5 space-y-2">
             <li>
@@ -277,7 +426,7 @@ const PainDiary: React.FC = () => {
           </ul>
         </section>
 
-        <section className="space-y-3">
+        <section className="space-y-3" id="tanda-bahaya">
           <h2 className="text-2xl font-extrabold text-slate-900">Tanda Bahaya – Kapan Harus Segera ke Klinik / IGD?</h2>
           <p>Walaupun jurnal ini membantu pantau nyeri di rumah, ada beberapa kondisi yang tidak boleh ditunda. Segera ke klinik / IGD bila:</p>
           <ul className="list-disc pl-5 space-y-1">
@@ -303,7 +452,7 @@ const PainDiary: React.FC = () => {
           <p>Jika ragu, lebih baik kontrol lebih cepat daripada terlambat.</p>
         </section>
 
-        <section className="space-y-2">
+        <section className="space-y-2" id="kurangi-nyeri">
           <h2 className="text-2xl font-extrabold text-slate-900">Hal yang Membantu Mengurangi Nyeri</h2>
           <ul className="list-disc pl-5 space-y-1">
             <li>Tetap bergerak pelan: jalan santai 5–10 menit, 2–3 kali sehari, sesuai kemampuan.</li>
@@ -314,7 +463,7 @@ const PainDiary: React.FC = () => {
           </ul>
         </section>
 
-        <section className="space-y-2">
+        <section className="space-y-2" id="catatan-obat">
           <h2 className="text-2xl font-extrabold text-slate-900">Catatan Obat Nyeri</h2>
           <ul className="list-disc pl-5 space-y-1">
             <li>Parasetamol biasanya pilihan pertama dan relatif aman bila diminum sesuai dosis.</li>
