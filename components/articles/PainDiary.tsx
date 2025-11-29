@@ -1,107 +1,342 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { ZMC_INFO } from '../../constants';
 
-interface Log {
-  id: number;
-  date: string;
-  pain: number;
+interface PainEntry {
+  id: string;
+  date: string; // ISO string
+  score: number; // 0-10
   note: string;
 }
 
-const PainDiary: React.FC = () => {
-  const [logs, setLogs] = useState<Log[]>([]);
-  const [painLevel, setPainLevel] = useState(5);
-  const [note, setNote] = useState('');
+const STORAGE_KEY = 'zmc-nyeri-lansia-journal';
 
-  // Load from local storage
+const PainScoreBadge: React.FC<{ score: number }> = ({ score }) => {
+  const color = score >= 7 ? 'bg-red-500' : score >= 4 ? 'bg-orange-500' : 'bg-green-500';
+  return (
+    <span
+      className={`${color} text-white font-bold text-sm px-3 py-1 rounded-full min-w-[44px] text-center inline-flex justify-center`}
+      aria-label={`Skala nyeri ${score}`}
+    >
+      {score}
+    </span>
+  );
+};
+
+const PainDiary: React.FC = () => {
+  const [entries, setEntries] = useState<PainEntry[]>([]);
+  const [score, setScore] = useState<number>(3);
+  const [note, setNote] = useState<string>('');
+
+  // Load saved entries on mount
   useEffect(() => {
-    const saved = localStorage.getItem('zmc_pain_diary');
-    if (saved) setLogs(JSON.parse(saved));
+    if (typeof window === 'undefined') return;
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      try {
+        const parsed: PainEntry[] = JSON.parse(saved);
+        setEntries(parsed);
+      } catch (error) {
+        console.error('Failed to parse journal data', error);
+      }
+    }
   }, []);
 
-  const saveLog = () => {
-    const newLog: Log = {
-      id: Date.now(),
-      date: new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'short' }),
-      pain: painLevel,
-      note: note || 'Tidak ada catatan'
+  const formattedEntries = useMemo(
+    () =>
+      entries.map(entry => ({
+        ...entry,
+        displayDate: new Date(entry.date).toLocaleDateString('id-ID', {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric',
+        }),
+      })),
+    [entries]
+  );
+
+  const persistEntries = (next: PainEntry[]) => {
+    setEntries(next);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+  };
+
+  const handleSave = () => {
+    const today = new Date();
+    const newEntry: PainEntry = {
+      id: crypto.randomUUID(),
+      date: today.toISOString(),
+      score,
+      note: note.trim(),
     };
-    const updated = [newLog, ...logs];
-    setLogs(updated);
-    localStorage.setItem('zmc_pain_diary', JSON.stringify(updated));
+
+    const updated = [newEntry, ...entries];
+    persistEntries(updated);
     setNote('');
   };
 
-  const clearLogs = () => {
-    if(confirm('Hapus semua riwayat?')) {
-      setLogs([]);
-      localStorage.removeItem('zmc_pain_diary');
+  const handleClear = () => {
+    if (confirm('Hapus semua riwayat nyeri?')) {
+      setEntries([]);
+      localStorage.removeItem(STORAGE_KEY);
     }
   };
 
+  const severityLabel = score >= 7 ? 'Nyeri berat' : score >= 4 ? 'Nyeri sedang' : 'Nyeri ringan';
+
   return (
-    <div className="space-y-6">
-      <div className="bg-orange-50 border-l-4 border-orange-500 p-6 rounded-r-xl">
-        <h2 className="text-2xl font-bold text-orange-800 mb-2">Jurnal Nyeri Lansia</h2>
-        <p className="text-slate-700">Catat kondisi nyeri harian Bapak/Ibu untuk dilaporkan saat kontrol ke dokter ZMC.</p>
+    <div className="space-y-6 pb-20">
+      {/* Breadcrumb */}
+      <div className="flex items-center gap-2 text-sm text-slate-500">
+        <span className="cursor-pointer hover:text-zmc-red" onClick={() => window.history.back()}>
+          Beranda
+        </span>
+        <i className="fa-solid fa-chevron-right text-xs" aria-hidden="true"></i>
+        <span className="text-slate-700 font-semibold">Manajemen Nyeri Lansia</span>
       </div>
 
-      <div className="bg-white p-6 rounded-2xl shadow-lg border border-slate-200">
-        <div className="mb-6">
-          <label className="block font-bold text-slate-700 mb-2">Skala Nyeri Hari Ini (0 - 10)</label>
-          <div className="flex items-center gap-4">
-            <input 
-              type="range" 
-              min="0" max="10" 
-              value={painLevel} 
-              onChange={(e) => setPainLevel(Number(e.target.value))}
-              className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer"
-            />
-            <span className={`text-2xl font-bold ${painLevel > 7 ? 'text-red-600' : painLevel > 4 ? 'text-orange-500' : 'text-green-600'}`}>
-              {painLevel}
-            </span>
-          </div>
-          <div className="flex justify-between text-xs text-slate-400 mt-1">
-            <span>Tidak Sakit</span>
-            <span>Sangat Sakit</span>
+      {/* Title card */}
+      <div className="bg-gradient-to-r from-red-500 to-red-600 text-white p-6 rounded-3xl shadow-lg">
+        <p className="text-xs uppercase tracking-[0.2em] font-bold text-white/80">ZMC Care</p>
+        <h1 className="text-3xl font-extrabold leading-tight mt-2 mb-1">Jurnal Nyeri Lansia</h1>
+        <p className="text-white/90 text-sm md:text-base max-w-2xl">
+          Catat kondisi nyeri harian Bapak/Ibu untuk dilaporkan saat kontrol ke dokter ZMC.
+        </p>
+      </div>
+
+      {/* Pain journal card */}
+      <div className="bg-white rounded-3xl shadow-lg border border-slate-200 p-5 md:p-7 space-y-5">
+        <div className="flex justify-between items-start gap-4">
+          <div className="flex-1">
+            <label className="block font-bold text-slate-800 mb-3">Skala Nyeri Hari Ini (0 – 10)</label>
+            <div className="flex items-center gap-3">
+              <div className="flex-1">
+                <input
+                  type="range"
+                  min={0}
+                  max={10}
+                  step={1}
+                  value={score}
+                  onChange={e => setScore(Number(e.target.value))}
+                  className="w-full accent-red-600 h-2 bg-slate-200 rounded-full cursor-pointer"
+                  aria-valuemin={0}
+                  aria-valuemax={10}
+                  aria-valuenow={score}
+                  aria-label="Skala nyeri hari ini"
+                />
+                <div className="flex justify-between text-xs text-slate-500 mt-1">
+                  <span>Tidak Sakit</span>
+                  <span>Sangat Sakit</span>
+                </div>
+              </div>
+              <div className="min-w-[88px] bg-slate-900 text-white rounded-2xl p-3 text-center">
+                <p className="text-[10px] uppercase tracking-wide text-white/60 font-bold">Nilai</p>
+                <p className="text-3xl font-extrabold leading-none">{score}</p>
+                <p className="text-xs mt-1 text-white/80">{severityLabel}</p>
+              </div>
+            </div>
           </div>
         </div>
 
-        <div className="mb-4">
-          <label className="block font-bold text-slate-700 mb-2">Catatan (Lokasi / Obat)</label>
-          <input 
-            type="text" 
-            placeholder="Cth: Nyeri lutut kiri setelah jalan pagi"
+        <div className="space-y-2">
+          <label className="block font-bold text-slate-800">Catatan Singkat</label>
+          <textarea
             value={note}
-            onChange={(e) => setNote(e.target.value)}
-            className="w-full border p-3 rounded-lg outline-none focus:ring-2 focus:ring-orange-500"
+            onChange={e => setNote(e.target.value)}
+            rows={3}
+            placeholder="Cth: Nyeri lutut kiri setelah jalan pagi / minum parasetamol jam 08.00"
+            className="w-full border border-slate-200 rounded-2xl p-3 text-sm focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none bg-slate-50"
           />
+          <p className="text-xs text-slate-500">
+            Tulis lokasi nyeri, kapan muncul, dan apa yang sudah dilakukan.
+          </p>
         </div>
 
-        <button onClick={saveLog} className="w-full bg-slate-900 text-white py-3 rounded-lg font-bold hover:bg-slate-800 transition">
+        <button
+          onClick={handleSave}
+          className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-2xl shadow-md transition active:scale-[0.99]"
+        >
           Simpan Catatan
         </button>
       </div>
 
-      <div className="space-y-3">
-        <div className="flex justify-between items-center">
-          <h3 className="font-bold text-slate-800">Riwayat Catatan</h3>
-          {logs.length > 0 && <button onClick={clearLogs} className="text-xs text-red-500 hover:underline">Hapus Semua</button>}
+      {/* History */}
+      <div className="bg-white rounded-3xl shadow-md border border-slate-200 p-5 md:p-7 space-y-4">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <h2 className="text-lg font-bold text-slate-900">Riwayat Catatan</h2>
+            <p className="text-sm text-slate-500">Catatan terbaru muncul paling atas.</p>
+          </div>
+          {entries.length > 0 && (
+            <button
+              onClick={handleClear}
+              className="text-xs text-red-600 font-semibold hover:underline"
+            >
+              Hapus semua
+            </button>
+          )}
         </div>
-        {logs.length === 0 ? (
-          <p className="text-center text-slate-400 py-4 italic">Belum ada catatan.</p>
+
+        {entries.length === 0 ? (
+          <p className="text-slate-400 text-center py-6 italic">Belum ada catatan.</p>
         ) : (
-          logs.map(log => (
-            <div key={log.id} className="bg-white p-4 rounded-xl border border-slate-100 flex justify-between items-center">
-              <div>
-                <p className="text-xs text-slate-400 font-bold uppercase">{log.date}</p>
-                <p className="text-slate-700">{log.note}</p>
+          <div className="space-y-3">
+            {formattedEntries.map(entry => (
+              <div
+                key={entry.id}
+                className="flex items-start justify-between gap-3 bg-slate-50 border border-slate-200 rounded-2xl p-4"
+              >
+                <div className="space-y-1">
+                  <p className="text-[11px] uppercase tracking-wide text-slate-500 font-bold">{entry.displayDate}</p>
+                  <p className="text-slate-700 text-sm leading-relaxed whitespace-pre-line">
+                    {entry.note || 'Tidak ada catatan'}
+                  </p>
+                </div>
+                <PainScoreBadge score={entry.score} />
               </div>
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold ${log.pain > 7 ? 'bg-red-500' : log.pain > 4 ? 'bg-orange-500' : 'bg-green-500'}`}>
-                {log.pain}
-              </div>
-            </div>
-          ))
+            ))}
+          </div>
         )}
+      </div>
+
+      {/* Article */}
+      <div className="bg-white rounded-3xl shadow-md border border-slate-200 p-5 md:p-7 space-y-5 leading-relaxed text-slate-800 text-[15px]">
+        <section className="space-y-2">
+          <h2 className="text-2xl font-extrabold text-slate-900">Apa itu Jurnal Nyeri Lansia?</h2>
+          <p>Halaman ini membantu Bapak/Ibu dan keluarga mencatat nyeri setiap hari. Catatan ini penting supaya dokter bisa:</p>
+          <ul className="list-disc pl-5 space-y-1">
+            <li>melihat pola nyeri (kapan muncul, apa pemicunya),</li>
+            <li>menilai efek obat / fisioterapi,</li>
+            <li>mencegah nyeri makin parah atau berujung jatuh.</li>
+          </ul>
+          <p>Tidak perlu menulis panjang–panjang. Yang penting rutin dan konsisten.</p>
+        </section>
+
+        <section className="space-y-3">
+          <h2 className="text-2xl font-extrabold text-slate-900">Cara Menggunakan Halaman Ini</h2>
+          <ol className="list-decimal pl-5 space-y-2">
+            <li>
+              <p className="font-semibold">Pilih Skala Nyeri Hari Ini (0–10)</p>
+              <ul className="list-disc pl-5 space-y-1">
+                <li>0 : tidak nyeri sama sekali.</li>
+                <li>1–3 : nyeri ringan, masih bisa beraktivitas.</li>
+                <li>4–6 : nyeri sedang, mulai mengganggu aktivitas.</li>
+                <li>7–8 : nyeri berat, sulit bergerak atau beraktivitas.</li>
+                <li>9–10 : nyeri sangat berat / tak tertahankan.</li>
+              </ul>
+            </li>
+            <li>
+              <p className="font-semibold">Tulis Catatan Singkat</p>
+              <p>Di kotak catatan, tuliskan hal-hal penting, misalnya:</p>
+              <ul className="list-disc pl-5 space-y-1">
+                <li>Lokasi nyeri – contoh: “lutut kanan”, “pinggang kiri”, “betis kiri”.</li>
+                <li>Kapan muncul – contoh: “setelah naik tangga”, “saat bangun tidur”.</li>
+                <li>Apa yang sudah dilakukan – contoh: “kompres hangat”, “minum parasetamol 500 mg”, “jalan pelan 10 menit”.</li>
+              </ul>
+            </li>
+            <li>
+              <p className="font-semibold">Klik “Simpan Catatan”</p>
+              <p>Catatan akan muncul di bagian Riwayat Catatan. Saat kontrol ke Zihan Medical Center, cukup tunjukkan riwayat ini ke dokter/perawat.</p>
+            </li>
+          </ol>
+        </section>
+
+        <section className="space-y-2">
+          <h2 className="text-2xl font-extrabold text-slate-900">Contoh Pengisian</h2>
+          <ul className="list-disc pl-5 space-y-2">
+            <li>
+              <p className="font-semibold">Skala nyeri: 3</p>
+              <p>Catatan: “Nyeri lutut kiri ringan setelah jalan pagi 10 menit, membaik setelah istirahat.”</p>
+            </li>
+            <li>
+              <p className="font-semibold">Skala nyeri: 6</p>
+              <p>Catatan: “Nyeri pinggang kanan kalau berdiri lama, minum parasetamol jam 08.00, nyeri berkurang jadi 3.”</p>
+            </li>
+            <li>
+              <p className="font-semibold">Skala nyeri: 8</p>
+              <p>Catatan: “Nyeri betis kiri, terasa tegang dan agak bengkak sejak kemarin sore.”</p>
+            </li>
+          </ul>
+        </section>
+
+        <section className="space-y-3">
+          <h2 className="text-2xl font-extrabold text-slate-900">Tanda Bahaya – Kapan Harus Segera ke Klinik / IGD?</h2>
+          <p>Walaupun jurnal ini membantu pantau nyeri di rumah, ada beberapa kondisi yang tidak boleh ditunda. Segera ke klinik / IGD bila:</p>
+          <ul className="list-disc pl-5 space-y-1">
+            <li>Nyeri tiba-tiba sangat hebat atau tidak membaik meski sudah minum obat.</li>
+            <li>Kaki terasa lemah atau kebas sampai sulit berdiri atau berjalan.</li>
+            <li>
+              Nyeri punggung bawah disertai:
+              <ul className="list-disc pl-5 mt-1 space-y-1">
+                <li>sulit buang air kecil,</li>
+                <li>mengompol tiba-tiba,</li>
+                <li>atau sulit buang air besar.</li>
+              </ul>
+            </li>
+            <li>Nyeri disertai demam tinggi atau turun berat badan tanpa sebab jelas.</li>
+            <li>Nyeri tetap sangat mengganggu walau sedang istirahat / malam hari.</li>
+            <li>
+              Betis atau kaki:
+              <ul className="list-disc pl-5 mt-1 space-y-1">
+                <li>bengkak, merah, hangat; atau sebaliknya, pucat dan dingin.</li>
+              </ul>
+            </li>
+          </ul>
+          <p>Jika ragu, lebih baik kontrol lebih cepat daripada terlambat.</p>
+        </section>
+
+        <section className="space-y-2">
+          <h2 className="text-2xl font-extrabold text-slate-900">Hal yang Membantu Mengurangi Nyeri</h2>
+          <ul className="list-disc pl-5 space-y-1">
+            <li>Tetap bergerak pelan: jalan santai 5–10 menit, 2–3 kali sehari, sesuai kemampuan.</li>
+            <li>Gunakan kompres dingin bila ada bengkak baru (&lt;3 hari), dan kompres hangat untuk otot kaku/nyeri lama.</li>
+            <li>Hindari duduk atau tiduran terus-menerus; setiap 30–40 menit usahakan berdiri &amp; regangkan badan sebentar.</li>
+            <li>Gunakan alas kaki tidak licin dan stabil, terutama di kamar mandi.</li>
+            <li>Minum obat nyeri sesuai anjuran dokter, jangan menambah dosis sendiri.</li>
+          </ul>
+        </section>
+
+        <section className="space-y-2">
+          <h2 className="text-2xl font-extrabold text-slate-900">Catatan Obat Nyeri</h2>
+          <ul className="list-disc pl-5 space-y-1">
+            <li>Parasetamol biasanya pilihan pertama dan relatif aman bila diminum sesuai dosis.</li>
+            <li>Obat anti-nyeri lain (misalnya golongan NSAID) sebaiknya hanya diminum setelah makan dan tidak jangka panjang tanpa pemantauan dokter.</li>
+            <li>Untuk pasien dengan riwayat sakit lambung, ginjal, atau jantung, wajib konsultasi dulu sebelum minum obat nyeri rutin.</li>
+          </ul>
+          <p>Tuliskan obat yang diminum di kolom catatan (contoh: “parasetamol 500 mg jam 08.00”), sehingga dokter bisa menilai apakah obat masih cukup atau perlu penyesuaian.</p>
+        </section>
+
+        <section className="space-y-2">
+          <h2 className="text-2xl font-extrabold text-slate-900">Pesan dari Zihan Medical Center</h2>
+          <p>
+            Tujuan kami adalah membantu Bapak/Ibu tetap aman dan tetap aktif. Jurnal nyeri ini bukan untuk “menakuti”, tetapi supaya:
+          </p>
+          <ul className="list-disc pl-5 space-y-1">
+            <li>keluhan Bapak/Ibu tidak diremehkan,</li>
+            <li>terapi bisa lebih tepat,</li>
+            <li>dan hari-hari lansia tetap bisa dinikmati dengan nyaman.</li>
+          </ul>
+          <p>
+            Jika nyeri menetap lebih dari 2–4 minggu atau sudah mengganggu tidur dan aktivitas harian, silakan buat janji kontrol ke Zihan Medical Center atau hubungi kami melalui WhatsApp yang tersedia di halaman ini.
+          </p>
+        </section>
+      </div>
+
+      {/* CTA spacing for floating button */}
+      <div className="h-10" aria-hidden />
+
+      <div className="bg-white border border-slate-200 rounded-3xl shadow-md p-5 flex items-center justify-between gap-4">
+        <div>
+          <p className="text-xs uppercase tracking-wide text-slate-500 font-bold">Butuh bantuan?</p>
+          <p className="text-base font-semibold text-slate-900">Hubungi Zihan Medical Center via WhatsApp</p>
+        </div>
+        <a
+          href={ZMC_INFO.whatsappUrl}
+          target="_blank"
+          rel="noreferrer"
+          className="bg-green-600 hover:bg-green-700 text-white font-bold px-4 py-3 rounded-2xl shadow-md text-sm whitespace-nowrap"
+        >
+          <i className="fa-brands fa-whatsapp mr-2"></i>
+          Chat Admin
+        </a>
       </div>
     </div>
   );
