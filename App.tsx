@@ -3,7 +3,6 @@ import {
   BrowserRouter,
   Routes,
   Route,
-  useNavigate,
   useLocation,
 } from 'react-router-dom';
 import Layout from './components/Layout';
@@ -12,7 +11,6 @@ import ArticlePage from './pages/ArticlePage';
 import NotFound from './components/NotFound';
 
 const AppRoutes: React.FC = () => {
-  const navigate = useNavigate();
   const location = useLocation();
 
   React.useEffect(() => {
@@ -22,7 +20,7 @@ const AppRoutes: React.FC = () => {
   return (
     <Layout>
       <Routes>
-        <Route path="/" element={<Home onNavigate={(id) => navigate(`/artikel/${id}`)} />} />
+        <Route path="/" element={<Home />} />
         <Route path="/artikel/:id" element={<ArticlePage />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
