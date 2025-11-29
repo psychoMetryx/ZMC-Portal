@@ -1,7 +1,9 @@
+
 import React, { useState } from 'react';
 import { ARTICLES } from '../services/articleRegistry';
 import ArticleCard from '../components/ArticleCard';
 import { Category } from '../types';
+import { ZMC_INFO } from '../constants';
 
 interface HomeProps {
   onNavigate: (id: string) => void;
@@ -17,51 +19,66 @@ const Home: React.FC<HomeProps> = ({ onNavigate }) => {
     : ARTICLES.filter(a => a.category === activeCategory);
 
   return (
-    <div className="pb-16">
+    <div className="min-h-screen bg-slate-50">
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-zmc-red to-red-800 text-white pt-12 pb-20 px-4 rounded-b-[3rem] shadow-xl relative overflow-hidden">
-        <div className="absolute top-0 right-0 opacity-10 transform translate-x-10 -translate-y-10">
-          <i className="fa-solid fa-heart-pulse text-9xl"></i>
+      <section className="relative bg-gradient-to-br from-zmc-red to-zmc-darkRed text-white pt-12 pb-32 px-4 rounded-b-[40px] shadow-xl overflow-hidden">
+        
+        {/* Abstract Background Pattern */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-10">
+          <i className="fa-solid fa-heart-pulse absolute -right-16 -top-16 text-[15rem]"></i>
+          <i className="fa-solid fa-user-doctor absolute -left-16 bottom-0 text-[15rem]"></i>
         </div>
-        <div className="container mx-auto text-center relative z-10">
-          <span className="inline-block bg-white/20 backdrop-blur-sm border border-white/30 px-4 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-4">
+
+        <div className="container mx-auto text-center relative z-10 max-w-4xl">
+          <span className="inline-block py-1 px-4 rounded-full bg-white/20 border border-white/30 backdrop-blur-md text-xs font-bold tracking-widest uppercase mb-6 shadow-sm">
             Portal Edukasi Pasien
           </span>
-          <h1 className="text-3xl md:text-5xl font-extrabold mb-4 leading-tight">
+          
+          <h1 className="text-4xl md:text-6xl font-extrabold mb-6 leading-tight drop-shadow-sm">
             Sehat Bersama <br/> Zihan Medical Center
           </h1>
-          <p className="text-red-100 text-lg max-w-2xl mx-auto mb-8">
+          
+          <p className="text-red-50 text-lg md:text-xl mb-10 max-w-2xl mx-auto font-medium leading-relaxed">
             Panduan kesehatan terpercaya, kalkulator medis, dan tips praktis untuk warga Garut.
           </p>
           
-          {/* Quick Stats/Features */}
-          <div className="flex flex-wrap justify-center gap-4 text-sm font-semibold">
-            <div className="bg-white/10 px-4 py-2 rounded-lg flex items-center gap-2">
-              <i className="fa-solid fa-user-doctor"></i> Konsultasi Dokter
-            </div>
-            <div className="bg-white/10 px-4 py-2 rounded-lg flex items-center gap-2">
-              <i className="fa-solid fa-calculator"></i> Cek Kesehatan
-            </div>
-            <div className="bg-white/10 px-4 py-2 rounded-lg flex items-center gap-2">
-              <i className="fa-solid fa-book-medical"></i> Panduan Lengkap
-            </div>
+          {/* Quick Action Buttons */}
+          <div className="flex flex-wrap justify-center gap-4">
+             <button 
+                onClick={() => window.open(ZMC_INFO.whatsappUrl, '_blank')} 
+                className="bg-white/10 hover:bg-white/20 border border-white/30 backdrop-blur-sm text-white px-6 py-3 rounded-xl font-bold transition flex items-center gap-2 group shadow-lg"
+             >
+                <i className="fa-solid fa-user-doctor text-lg group-hover:scale-110 transition-transform"></i> Konsultasi Dokter
+             </button>
+             <button 
+                onClick={() => window.open(`tel:${ZMC_INFO.emergencyPhone.replace(/[() -]/g, '')}`, '_self')} 
+                className="bg-red-600 hover:bg-red-700 border border-red-500 backdrop-blur-sm text-white px-6 py-3 rounded-xl font-bold transition flex items-center gap-2 group shadow-lg animate-pulse"
+             >
+                <i className="fa-solid fa-ambulance text-lg group-hover:scale-110 transition-transform"></i> Gawat Darurat
+             </button>
+             <button 
+                onClick={() => window.open(ZMC_INFO.instagramUrl, '_blank')} 
+                className="bg-white/10 hover:bg-white/20 border border-white/30 backdrop-blur-sm text-white px-6 py-3 rounded-xl font-bold transition flex items-center gap-2 group shadow-lg"
+             >
+                <i className="fa-brands fa-instagram text-lg group-hover:scale-110 transition-transform"></i> Instagram
+             </button>
           </div>
         </div>
       </section>
 
-      {/* Content Section */}
-      <div className="container mx-auto px-4 -mt-10 relative z-20">
+      {/* Content Section with Negative Margin for Overlap */}
+      <div className="container mx-auto px-4 -mt-20 relative z-20 pb-20">
         
-        {/* Category Filter */}
-        <div className="flex overflow-x-auto pb-4 gap-2 mb-6 no-scrollbar">
+        {/* Category Filter Pills */}
+        <div className="flex overflow-x-auto pb-6 gap-3 no-scrollbar justify-start md:justify-center px-2">
           {categories.map(cat => (
             <button
               key={cat}
               onClick={() => setActiveCategory(cat)}
-              className={`flex-shrink-0 px-5 py-2.5 rounded-full text-sm font-bold transition shadow-sm border ${
+              className={`flex-shrink-0 px-6 py-3 rounded-full text-sm font-bold transition shadow-md border whitespace-nowrap ${
                 activeCategory === cat 
-                  ? 'bg-zmc-red text-white border-zmc-red' 
-                  : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                  ? 'bg-white text-zmc-red border-white ring-4 ring-red-500/20' 
+                  : 'bg-white/90 text-slate-600 border-transparent hover:bg-white hover:text-zmc-red'
               }`}
             >
               {cat}
@@ -69,7 +86,7 @@ const Home: React.FC<HomeProps> = ({ onNavigate }) => {
           ))}
         </div>
 
-        {/* Grid */}
+        {/* Articles Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredArticles.map(article => (
             <ArticleCard 
@@ -82,9 +99,12 @@ const Home: React.FC<HomeProps> = ({ onNavigate }) => {
 
         {/* Empty State */}
         {filteredArticles.length === 0 && (
-          <div className="text-center py-20 bg-white rounded-2xl border border-dashed border-slate-300">
-            <i className="fa-solid fa-folder-open text-4xl text-slate-300 mb-4"></i>
-            <p className="text-slate-500">Belum ada artikel di kategori ini.</p>
+          <div className="text-center py-20 bg-white rounded-2xl border border-dashed border-slate-300 shadow-sm">
+            <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i className="fa-solid fa-folder-open text-2xl text-slate-400"></i>
+            </div>
+            <h3 className="text-lg font-bold text-slate-700">Belum ada artikel</h3>
+            <p className="text-slate-500">Silakan pilih kategori lain.</p>
           </div>
         )}
       </div>

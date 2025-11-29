@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { ZMC_INFO } from '../constants';
 
@@ -71,7 +72,10 @@ const Layout: React.FC<LayoutProps> = ({ children, onGoHome, isHome }) => {
                 <i className="fa-solid fa-map-location-dot"></i> Peta Lokasi
               </a>
               <a href={ZMC_INFO.whatsappUrl} target="_blank" rel="noreferrer" className="flex items-center gap-2 text-green-600 font-bold">
-                <i className="fa-brands fa-whatsapp"></i> Hubungi Kami (24 Jam)
+                <i className="fa-brands fa-whatsapp"></i> Chat Dokter
+              </a>
+              <a href={`tel:${ZMC_INFO.emergencyPhone.replace(/[() -]/g, '')}`} className="flex items-center gap-2 text-red-600 font-bold">
+                <i className="fa-solid fa-phone"></i> Gawat Darurat
               </a>
             </div>
           </div>
@@ -109,8 +113,12 @@ const Layout: React.FC<LayoutProps> = ({ children, onGoHome, isHome }) => {
                   <span>{ZMC_INFO.address}</span>
                 </li>
                 <li className="flex items-center gap-3">
-                  <i className="fa-solid fa-phone text-zmc-red"></i>
-                  <span>{ZMC_INFO.phone}</span>
+                  <i className="fa-solid fa-phone text-green-500"></i>
+                  <span>{ZMC_INFO.phone} / {ZMC_INFO.phone2}</span>
+                </li>
+                <li className="flex items-center gap-3 font-bold text-red-400">
+                  <i className="fa-solid fa-ambulance"></i>
+                  <span>Darurat: {ZMC_INFO.emergencyPhone}</span>
                 </li>
                 <li className="flex items-center gap-3">
                   <i className="fa-solid fa-clock text-zmc-red"></i>
@@ -128,6 +136,9 @@ const Layout: React.FC<LayoutProps> = ({ children, onGoHome, isHome }) => {
                 </a>
                 <a href={ZMC_INFO.whatsappUrl} target="_blank" rel="noreferrer" className="bg-green-600 hover:bg-green-700 text-white py-3 px-4 rounded-lg flex items-center justify-center gap-2 transition font-bold">
                   <i className="fa-brands fa-whatsapp text-xl"></i> Chat WhatsApp
+                </a>
+                <a href={ZMC_INFO.instagramUrl} target="_blank" rel="noreferrer" className="bg-pink-600 hover:bg-pink-700 text-white py-3 px-4 rounded-lg flex items-center justify-center gap-2 transition font-bold">
+                  <i className="fa-brands fa-instagram text-xl"></i> Instagram
                 </a>
               </div>
             </div>
