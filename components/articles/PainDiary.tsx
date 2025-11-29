@@ -9,6 +9,7 @@ interface PainEntry {
 }
 
 const STORAGE_KEY = 'zmc-nyeri-lansia-journal';
+const LEGACY_STORAGE_KEY = 'zmc_pain_diary';
 
 const PainScoreBadge: React.FC<{ score: number }> = ({ score }) => {
   const color = score >= 7 ? 'bg-red-500' : score >= 4 ? 'bg-orange-500' : 'bg-green-500';
@@ -30,14 +31,31 @@ const PainDiary: React.FC = () => {
   // Load saved entries on mount
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) {
+
+    const parseEntries = (raw: string | null) => {
+      if (!raw) return null;
       try {
-        const parsed: PainEntry[] = JSON.parse(saved);
-        setEntries(parsed);
+        const parsed: PainEntry[] = JSON.parse(raw);
+        if (Array.isArray(parsed)) {
+          return parsed;
+        }
       } catch (error) {
         console.error('Failed to parse journal data', error);
       }
+      return null;
+    };
+
+    const currentEntries = parseEntries(localStorage.getItem(STORAGE_KEY));
+    if (currentEntries) {
+      setEntries(currentEntries);
+      return;
+    }
+
+    const legacyEntries = parseEntries(localStorage.getItem(LEGACY_STORAGE_KEY));
+    if (legacyEntries) {
+      setEntries(legacyEntries);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(legacyEntries));
+      localStorage.removeItem(LEGACY_STORAGE_KEY);
     }
   }, []);
 
@@ -57,6 +75,7 @@ const PainDiary: React.FC = () => {
   const persistEntries = (next: PainEntry[]) => {
     setEntries(next);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+    localStorage.removeItem(LEGACY_STORAGE_KEY);
   };
 
   const handleSave = () => {
@@ -77,6 +96,7 @@ const PainDiary: React.FC = () => {
     if (confirm('Hapus semua riwayat nyeri?')) {
       setEntries([]);
       localStorage.removeItem(STORAGE_KEY);
+      localStorage.removeItem(LEGACY_STORAGE_KEY);
     }
   };
 
