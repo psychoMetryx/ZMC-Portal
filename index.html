@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/jpeg" href="https://i.imgur.com/jzuguQE.jpeg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>EduZMC - Portal Kesehatan Zihan Medical Center</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              zmc: {
+                red: '#D32F2F',
+                darkRed: '#B71C1C',
+                black: '#1a1a1a',
+                light: '#f8f9fa'
+              }
+            },
+            fontFamily: {
+              sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            }
+          }
+        }
+      }
+    </script>
+    <style>
+      body {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        background-color: #f8f9fa;
+      }
+      /* Custom Scrollbar */
+      ::-webkit-scrollbar { width: 8px; }
+      ::-webkit-scrollbar-track { background: #f1f1f1; }
+      ::-webkit-scrollbar-thumb { background: #D32F2F; border-radius: 4px; }
+      ::-webkit-scrollbar-thumb:hover { background: #B71C1C; }
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/"
+  }
+}
+</script>
+</head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>
