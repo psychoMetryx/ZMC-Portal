@@ -1,11 +1,10 @@
 import React, { useEffect } from 'react';
-import { useNavigate, useParams, Link } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { ARTICLES } from '../services/articleRegistry';
 import NotFound from '../components/NotFound';
 
 const ArticlePage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
 
   const article = ARTICLES.find((item) => item.id === id);
 
@@ -32,19 +31,19 @@ const ArticlePage: React.FC = () => {
       </div>
 
       {/* Bottom Nav */}
-      <div className="mt-10 pt-10 border-t border-slate-200 text-center">
-        <button
-          onClick={() => navigate(-1)}
-          className="text-slate-500 hover:text-zmc-red font-bold mr-6"
+      <div className="mt-10 pt-10 border-t border-slate-200 text-center space-x-6">
+        <Link
+          to="/"
+          className="text-slate-500 hover:text-zmc-red font-bold"
         >
-          &larr; Kembali
-        </button>
-        <button
-          onClick={() => navigate('/')}
+          &larr; Kembali ke Daftar Artikel
+        </Link>
+        <Link
+          to="/"
           className="text-zmc-red font-bold hover:underline"
         >
           Menu Utama
-        </button>
+        </Link>
       </div>
     </div>
   );

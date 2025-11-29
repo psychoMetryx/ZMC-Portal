@@ -1,21 +1,29 @@
 
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { ARTICLES } from '../services/articleRegistry';
 import ArticleCard from '../components/ArticleCard';
 import { Category } from '../types';
 import { ZMC_INFO } from '../constants';
 
-interface HomeProps {
-  onNavigate: (id: string) => void;
-}
+const CATEGORY_STORAGE_KEY = 'zmc-home-active-category';
 
-const Home: React.FC<HomeProps> = ({ onNavigate }) => {
-  const [activeCategory, setActiveCategory] = useState<string>('Semua');
+const Home: React.FC = () => {
+  const categories = useMemo(() => ['Semua', ...Object.values(Category)], []);
+  const [activeCategory, setActiveCategory] = useState<string>(() => {
+    if (typeof window === 'undefined') return 'Semua';
+    const saved = localStorage.getItem(CATEGORY_STORAGE_KEY);
+    return saved && categories.includes(saved) ? saved : 'Semua';
+  });
 
-  const categories = ['Semua', ...Object.values(Category)];
-  
-  const filteredArticles = activeCategory === 'Semua' 
-    ? ARTICLES 
+  const handleCategorySelect = (category: string) => {
+    setActiveCategory(category);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(CATEGORY_STORAGE_KEY, category);
+    }
+  };
+
+  const filteredArticles = activeCategory === 'Semua'
+    ? ARTICLES
     : ARTICLES.filter(a => a.category === activeCategory);
 
   return (
@@ -74,10 +82,10 @@ const Home: React.FC<HomeProps> = ({ onNavigate }) => {
           {categories.map(cat => (
             <button
               key={cat}
-              onClick={() => setActiveCategory(cat)}
+              onClick={() => handleCategorySelect(cat)}
               className={`flex-shrink-0 px-6 py-3 rounded-full text-sm font-bold transition shadow-md border whitespace-nowrap ${
-                activeCategory === cat 
-                  ? 'bg-white text-zmc-red border-white ring-4 ring-red-500/20' 
+                activeCategory === cat
+                  ? 'bg-white text-zmc-red border-white ring-4 ring-red-500/20'
                   : 'bg-white/90 text-slate-600 border-transparent hover:bg-white hover:text-zmc-red'
               }`}
             >
@@ -89,10 +97,9 @@ const Home: React.FC<HomeProps> = ({ onNavigate }) => {
         {/* Articles Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredArticles.map(article => (
-            <ArticleCard 
-              key={article.id} 
-              article={article} 
-              onClick={onNavigate} 
+            <ArticleCard
+              key={article.id}
+              article={article}
             />
           ))}
         </div>

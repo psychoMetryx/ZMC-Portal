@@ -1,15 +1,15 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { Article } from '../types';
 
 interface ArticleCardProps {
   article: Article;
-  onClick: (id: string) => void;
 }
 
-const ArticleCard: React.FC<ArticleCardProps> = ({ article, onClick }) => {
+const ArticleCard: React.FC<ArticleCardProps> = ({ article }) => {
   return (
-    <div 
-      onClick={() => onClick(article.id)}
+    <Link
+      to={`/artikel/${article.id}`}
       className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-xl hover:border-red-200 transition-all cursor-pointer group flex flex-col h-full"
     >
       <div className="flex items-center gap-4 mb-4">
@@ -31,7 +31,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({ article, onClick }) => {
       <div className="flex items-center text-zmc-red text-xs font-bold mt-auto">
         BACA SELENGKAPNYA <i className="fa-solid fa-arrow-right ml-2 group-hover:translate-x-1 transition-transform"></i>
       </div>
-    </div>
+    </Link>
   );
 };
 
