@@ -42,14 +42,14 @@ const CoughAdult: React.FC = () => {
               Bakteri (Pneumonia)
               <span className="text-slate-400 group-open:rotate-180 transition"><i className="fa-solid fa-chevron-down"></i></span>
             </summary>
-            <p className="text-sm text-slate-600 mt-2">Dahak hijau pekat, sesak napas, demam tinggi >3 hari. Butuh antibiotik resep dokter.</p>
+            <p className="text-sm text-slate-600 mt-2">Dahak hijau pekat, sesak napas, demam tinggi &gt;3 hari. Butuh antibiotik resep dokter.</p>
           </details>
           <details className="group border-b pb-2">
             <summary className="font-bold text-slate-700 cursor-pointer flex justify-between">
               TBC (Kronis)
               <span className="text-slate-400 group-open:rotate-180 transition"><i className="fa-solid fa-chevron-down"></i></span>
             </summary>
-            <p className="text-sm text-slate-600 mt-2">Batuk >2 minggu, keringat malam, BB turun. Wajib cek dahak.</p>
+            <p className="text-sm text-slate-600 mt-2">Batuk &gt;2 minggu, keringat malam, BB turun. Wajib cek dahak.</p>
           </details>
           <details className="group">
             <summary className="font-bold text-slate-700 cursor-pointer flex justify-between">
